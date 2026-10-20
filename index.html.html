@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>나의 책 취향 검사</title>
+<style>
+:root{--bg:#fff8e7;--card:#ffffff;--text:#3a2e22;--sub:#7a6a58;--main:#ff8a3d;--main-t:#ffffff;--line:#ffd9b0;--soft:#fff1dc;--ok:#2f9e5f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#241c14;--card:#33291e;--text:#fff1e0;--sub:#cdb89d;--main:#ff9b55;--main-t:#2a1a0c;--line:#5a4630;--soft:#40331f;--ok:#6fd49a}}
+:root[data-theme="dark"]{--bg:#241c14;--card:#33291e;--text:#fff1e0;--sub:#cdb89d;--main:#ff9b55;--main-t:#2a1a0c;--line:#5a4630;--soft:#40331f;--ok:#6fd49a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Jua","Noto Sans KR","Malgun Gothic",sans-serif;font-size:18px;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+.card{background:var(--card);border:3px solid var(--line);border-radius:24px;padding:22px 18px;text-align:center}
+h1{font-size:30px;margin:8px 0}
+h2{font-size:22px;margin:6px 0 14px;line-height:1.4}
+p{margin:6px 0;color:var(--sub)}
+.big{font-size:64px;line-height:1.1}
+button{font:inherit;cursor:pointer;border:0;border-radius:18px;padding:14px 18px;color:var(--text)}
+.main{background:var(--main);color:var(--main-t);font-size:20px;width:100%;margin-top:14px;font-weight:700}
+.main:disabled{opacity:.5}
+.opt{display:block;width:100%;text-align:left;background:var(--soft);border:3px solid var(--line);margin:10px 0;font-size:18px}
+.opt:active,.opt:hover{border-color:var(--main)}
+.bar{height:12px;background:var(--soft);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;background:var(--main);transition:width .3s}
+.num{color:var(--main);font-weight:700}
+input,textarea{font:inherit;width:100%;padding:12px;margin:6px 0;border:3px solid var(--line);border-radius:14px;background:var(--bg);color:var(--text)}
+label{display:block;text-align:left;color:var(--sub);margin-top:8px;font-size:16px}
+.tag{display:inline-block;background:var(--soft);border-radius:14px;padding:4px 12px;margin:3px;font-size:16px}
+.ok{color:var(--ok);font-weight:700}
+.admin{margin-top:18px;text-align:left;font-size:16px}
+.admin li{margin:3px 0}
+.sec{background:var(--soft);border-radius:16px;padding:12px;margin-top:12px;text-align:left}
+.hide{display:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.tp{background:var(--soft);border:3px solid var(--line);border-radius:18px;padding:12px 6px;text-align:center;font-size:16px;line-height:1.3}
+.tp:active,.tp:hover{border-color:var(--main)}
+.tp b{display:block;font-size:28px}
+.tp.me{border-color:var(--main)}
+.tp small{display:block;color:var(--sub);font-size:13px;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="wrap"><div id="app" class="card"></div></div>
+<script>
+// 축: A 세계(0판타지/1현실) B 마음(0탐구/1공감) C 분위기(0웃음/1진지) D 방식(0혼자/1함께)
+const Q=[
+[0,"영화를 고를 때 더 끌리는 건?","마법사와 용이 나오는 영화","실제 있었던 일을 바탕으로 한 영화"],
+[1,"이야기 속 사건이 잘 이해되지 않으면?","왜 그런지 자세히 찾아봐요","인물의 마음이 어땠을지 생각해 봐요"],
+[2,"책을 읽다가 가장 좋은 순간은?","웃음이 빵 터지는 순간","심장이 쿵쿵 뛰는 순간"],
+[3,"쉬는 시간에 책이 있다면?","조용한 곳에서 혼자 읽어요","친구들과 같이 보며 이야기해요"],
+[0,"자유 시간에 더 해 보고 싶은 상상은?","비밀 세계로 가는 문을 발견하기","우주 탐사선을 타고 행성 둘러보기"],
+[1,"친구가 속상해 보일 때 나는?","무슨 일인지 물어보고 해결 방법을 찾아요","말없이 곁에 있으면서 이야기를 들어줘요"],
+[2,"책 속 인물이 된다면?","어디서든 분위기를 띄우는 인물","위기에도 끝까지 포기하지 않는 인물"],
+[3,"재미있게 읽은 책은?","혼자 마음속에 간직해요","친구에게 바로 말해 주고 싶어요"],
+[0,"체험학습으로 가고 싶은 곳은?","전설 속 성을 꾸며 놓은 테마파크","실제 유적이 남아 있는 역사 마을"],
+[1,"수수께끼 이야기에서 더 기대되는 순간은?","범인이 밝혀지는 순간","주인공이 속마음을 털어놓는 순간"],
+[2,"친구에게 책을 선물한다면?","읽으면 웃음이 나는 책","읽고 나면 마음에 오래 남는 책"],
+[3,"읽을 책을 고를 때 나는?","서가를 천천히 둘러보며 혼자 골라요","친구들의 추천을 듣고 골라요"]
+];
+const L=[["판타지","현실"],["탐구","공감"],["웃음","진지"],["혼자","함께"]];
+// 코드: 세계 마음 분위기 방식 (0/1)
+const R={
+"0000":["🔮","엉뚱한 마법 연구가","마법 세계를 상상하면서도 '이건 왜 그럴까?' 하고 파고드는 친구예요. 웃긴 이야기에 기분이 좋아지고, 혼자 조용히 푹 빠지는 시간을 좋아해요.",["유머 판타지","마법 동화","신비한 세계 이야기"]],
+"0001":["🧪","수다쟁이 마법 탐험대","신기한 세계의 비밀을 찾아다니고, 발견한 건 친구와 나눠야 직성이 풀려요. 함께 웃으며 읽을 때 책이 제일 재미있어요.",["유머 판타지","모험 동화","같이 읽는 시리즈"]],
+"0010":["🗝️","비밀의 문 수집가","숨겨진 세계와 수수께끼에 마음이 끌려요. 긴장감 넘치는 이야기에 혼자 깊이 빠져드는 몰입형 독서가예요.",["미스터리 판타지","마법 추리","장편 판타지"]],
+"0011":["🧭","전설을 쫓는 탐험대장","전설과 비밀을 파헤치는 모험을 좋아해요. 친구와 단서를 나누고 추리하며 읽으면 이야기가 두 배로 재미있어져요.",["모험 판타지","신화와 전설","퀴즈 추리"]],
+"0100":["🌈","몽글몽글 상상 친구","상상 속 인물의 마음까지 잘 알아주는 다정한 독자예요. 따뜻하고 웃음 나는 이야기를 혼자 포근하게 읽는 걸 좋아해요.",["따뜻한 판타지","동물 판타지","그림이 예쁜 동화"]],
+"0101":["🎈","웃음 나눔 요정","주인공의 마음에 푹 공감하며 읽고, 유쾌한 장면은 친구와 함께 웃고 싶어 해요. 책으로 분위기를 밝게 만드는 친구예요.",["유머 판타지","우정 이야기","같이 읽는 동화"]],
+"0110":["🌙","별빛 속 이야기꾼","주인공의 아픔과 용기를 깊이 느끼는 감성 독자예요. 조용한 시간에 혼자 읽는 감동적인 이야기를 오래 기억해요.",["감동 판타지","성장 이야기","옛이야기와 신화"]],
+"0111":["🕊️","용기를 나누는 동료","주인공의 용기와 우정에 마음이 크게 움직여요. 감동받은 이야기를 친구와 나누면 느낌이 더 깊어져요.",["모험 판타지","우정과 성장 이야기","장편 시리즈"]],
+"1000":["🔭","호기심 만렙 박사","세상의 신기한 사실을 찾아 읽는 걸 즐겨요. 재미있는 지식을 알게 되면 웃음이 나고, 혼자 파고드는 시간이 좋아요.",["과학 만화","동물·우주 백과","유머 지식책"]],
+"1001":["🎤","지식 수다 대장","새로 알게 된 사실을 친구에게 알려 주는 게 제일 즐거워요. 퀴즈를 내고 맞히며 함께 읽는 책이 잘 어울려요.",["퀴즈 학습만화","상식 책","동물 이야기"]],
+"1010":["🕵️","진실을 찾는 탐정","단서를 하나씩 모아 사실을 밝혀내는 데 집중해요. 긴장감 있는 이야기에 혼자 깊이 몰입하는 걸 좋아해요.",["추리 동화","역사 이야기","과학 도서"]],
+"1011":["🧩","단서 공유 수사팀","친구와 단서를 맞춰 보며 진실을 찾아가는 과정이 재미있어요. 생각을 나눌수록 더 넓게 보는 친구예요.",["추리 동화","역사 탐험 이야기","수수께끼 책"]],
+"1100":["☀️","일상 속 미소 수집가","학교와 가족 이야기에서 따뜻한 웃음을 잘 찾아내요. 편안한 마음으로 혼자 읽을 때 가장 행복해요.",["생활 동화","유머 동화","일기 형식 이야기"]],
+"1101":["🍀","교실의 분위기 메이커","친구들의 이야기에 공감하고, 웃음으로 분위기를 좋게 만드는 재주가 있어요. 책 이야기를 나눌 때 가장 빛나요.",["학교 이야기","우정 동화","만화책"]],
+"1110":["🌿","마음을 읽는 관찰자","실제 사람들의 삶과 감정을 깊이 이해하는 친구예요. 혼자 조용히 곰곰이 생각하게 되는 이야기를 좋아해요.",["성장 이야기","위인 이야기","감동 실화"]],
+"1111":["🤝","마음을 나누는 이야기 친구","실화와 따뜻한 이야기에 감동을 잘 받아요. 친구와 생각을 나누면 책 속 이야기가 더 크게 다가와요.",["감동 실화","위인전","토론하기 좋은 동화"]]
+};
+const app=document.getElementById("app");
+let step=0,ans=[],result=null;
+
+function start(){step=0;ans=[];result=null;
+app.innerHTML=`<div class="big">📚</div><h1>나의 책 취향 검사</h1><p>12개의 질문에 답하면<br>16가지 책 취향 중 나는 어떤 독서가인지 알려줘요!</p><button class="main" id="go">시작하기</button>`;
+document.getElementById("go").onclick=ask}
+
+function ask(){
+const [ax,q,o0,o1]=Q[step];
+const opts=[[0,o0],[1,o1]];if(Math.random()<.5)opts.reverse();
+app.innerHTML=`<div class="bar"><i style="width:${step/Q.length*100}%"></i></div><p><span class="num">${step+1}</span> / ${Q.length}</p><h2></h2><div id="opts"></div>`;
+app.querySelector("h2").textContent=q;
+const box=document.getElementById("opts");
+opts.forEach(([v,t],i)=>{const b=document.createElement("button");b.className="opt";b.textContent=["① ","② "][i]+t;
+b.onclick=()=>{ans.push([ax,v]);step++;step<Q.length?ask():finish()};box.appendChild(b)})}
+
+function finish(){
+const c=[[0,0],[0,0],[0,0],[0,0]];ans.forEach(([a,v])=>c[a][v]++);
+const r=c.map(x=>x[1]>x[0]?1:0);result=r;
+const [emo,name,desc,gen]=R[r.join("")];
+const code=r.map((v,i)=>L[i][v]).join("·");
+app.innerHTML=`<p>나의 책 취향은...</p><div class="big">${emo}</div><h1></h1>
+<div>${r.map((v,i)=>`<span class="tag">${L[i][v]}</span>`).join("")}</div>
+<div class="sec">${desc}</div>
+<p>이런 책을 추천해요</p><div>${gen.map(x=>`<span class="tag">${x}</span>`).join("")}</div>
+<a class="main" href="https://forms.gle/z6NSH8TbmaFhKAF88" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;text-decoration:none;padding:14px 18px;border-radius:18px">🎁 응모하러 가기</a><p style="font-size:14px">버튼이 안 열리면 주소를 복사해 주세요:<br>https://forms.gle/z6NSH8TbmaFhKAF88</p><button class="main" id="al" style="background:var(--soft);color:var(--text)">🔎 모든 유형 보기</button><button class="main" id="re" style="background:var(--soft);color:var(--text)">다시 검사하기</button>`;
+app.querySelector("h1").textContent=name;
+app.dataset.type=`${name} (${code})`;
+document.getElementById("re").onclick=start;document.getElementById("al").onclick=all;
+}
+
+function back(){result?finish():start()}
+function all(){
+const mine=result?result.join(""):"";
+app.innerHTML=`<h2>📖 16가지 책 취향</h2><p>궁금한 유형을 눌러 보세요!</p><div class="grid" id="gr"></div><button class="main" id="bk2" style="background:var(--soft);color:var(--text)">${result?"← 내 결과로 돌아가기":"← 처음으로"}</button>`;
+const g=document.getElementById("gr");
+Object.keys(R).forEach(k=>{const [e,n]=R[k];const b=document.createElement("button");b.className="tp"+(k===mine?" me":"");
+b.innerHTML=`<b>${e}</b><span></span><small>${[0,1,2,3].map(i=>L[i][+k[i]]).join("·")}</small>`;
+b.querySelector("span").textContent=n+(k===mine?" (나)":"");
+b.onclick=()=>detail(k);g.appendChild(b)});
+document.getElementById("bk2").onclick=back}
+function detail(k){
+const [e,n,d,gen]=R[k];
+app.innerHTML=`<div class="big">${e}</div><h1></h1><div>${[0,1,2,3].map(i=>`<span class="tag">${L[i][+k[i]]}</span>`).join("")}</div><div class="sec">${d}</div><p>이런 책을 추천해요</p><div>${gen.map(x=>`<span class="tag">${x}</span>`).join("")}</div><button class="main" id="b1" style="background:var(--soft);color:var(--text)">← 전체 유형 보기</button><button class="main" id="b2">검사 시작하기</button>`;
+app.querySelector("h1").textContent=n;
+document.getElementById("b1").onclick=all;document.getElementById("b2").onclick=start}
+
+start();
+
+</script>
+</body>
+</html>
